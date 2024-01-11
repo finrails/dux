@@ -13,6 +13,14 @@ const (
 	// Operators
 	ASSIGN = "="
 	PLUS = "+"
+	MINUS = "-"
+	RBAR = "/"
+	STAR = "*"
+	EXCLAMATION = "!"
+
+	// Inequalites
+	STHAN = "<"
+	GTHAN = ">"
 
 	// Delimiters
 	COMMA = ","
