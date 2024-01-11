@@ -17,8 +17,6 @@ const (
 	RBAR = "/"
 	STAR = "*"
 	EXCLAMATION = "!"
-
-	// Inequalites
 	STHAN = "<"
 	GTHAN = ">"
 
