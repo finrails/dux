@@ -59,6 +59,14 @@ func (lex *Lexer) readNumber() string {
 	return lex.input[startPosition:lex.position]
 }
 
+func (lex *Lexer) peekCharAhead() byte {
+	if lex.readPosition >= len(lex.input) {
+		return 0
+	}
+
+	return lex.input[lex.readPosition]
+}
+
 func (lex *Lexer) NextToken() token.Token {
 	var tok token.Token
 
@@ -66,7 +74,14 @@ func (lex *Lexer) NextToken() token.Token {
 
 	switch lex.char {
 	case '=':
-		tok = newToken(token.ASSIGN, lex.char)
+		if lex.peekCharAhead() == '=' {
+			char := lex.char // 'Previous' lex char
+			lex.readChar();
+
+			tok = token.Token{Type: token.EQUAL, Literal: string(char) + string(lex.char)}
+		} else {
+			tok = newToken(token.ASSIGN, lex.char)
+		}
 	case ';':
 		tok = newToken(token.SEMICOLON, lex.char)
 	case '(':
@@ -82,7 +97,14 @@ func (lex *Lexer) NextToken() token.Token {
 	case '}':
 		tok = newToken(token.RBRACE, lex.char)
 	case '!':
-		tok = newToken(token.EXCLAMATION, lex.char)
+		if lex.peekCharAhead() == '=' {
+			char := lex.char
+			lex.readChar()
+
+			tok = token.Token{Type: token.NEQUAL, Literal: string(char) + string(lex.char)}
+		} else {
+			tok = newToken(token.EXCLAMATION, lex.char)
+		}
 	case '-':
 		tok = newToken(token.MINUS, lex.char)
 	case '/':
