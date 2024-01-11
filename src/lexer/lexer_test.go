@@ -23,6 +23,9 @@ func TestNextToken(t *testing.T) {
 		} else {
 			return false;
 		}
+
+		217 == 217;
+		78 != 2;
 	`
 
 	tests := []struct {
@@ -94,6 +97,14 @@ func TestNextToken(t *testing.T) {
 		{token.FALSE, "false"},
 		{token.SEMICOLON, ";"},
 		{token.RBRACE, "}"},
+		{token.INT, "217"},
+		{token.EQUAL, "=="},
+		{token.INT, "217"},
+		{token.SEMICOLON, ";"},
+		{token.INT, "78"},
+		{token.NEQUAL, "!="},
+		{token.INT, "2"},
+		{token.SEMICOLON, ";"},
 	}
 
 	lex := New(input)

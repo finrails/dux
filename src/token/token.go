@@ -20,6 +20,10 @@ const (
 	STHAN = "<"
 	GTHAN = ">"
 
+	// Double Operators
+	EQUAL = "=="
+	NEQUAL = "!="
+
 	// Delimiters
 	COMMA = ","
 	SEMICOLON = ";"
