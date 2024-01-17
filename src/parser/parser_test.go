@@ -22,7 +22,7 @@ func TestLetStatements(t *testing.T) {
 		t.Fatalf("ParseProgram() returned nil")
 	}
 
-	if program == nil {
+	if len(program.Statements) < 3 {
 		t.Fatalf("program.Statements does not contain 3 statements. got=%d instead", len(program.Statements))
 	}
 
@@ -51,8 +51,9 @@ func testLetStatement(t *testing.T, statement ast.Statement, name string) bool {
 
 	letStmt, ok := statement.(*ast.LetStatement)
 
+	// case not a LetStatement
 	if !ok {
-		t.Errorf("statement is not *aset.LetStatement. got=%T instead", statement)
+		t.Errorf("statement is not *ast.LetStatement. got=%T instead", statement)
 		return false
 	}
 
