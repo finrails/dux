@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"testing"
 	"dux/src/ast"
 	"dux/src/lexer"
+	"testing"
 )
 
 func TestLetStatements(t *testing.T) {
@@ -40,6 +40,37 @@ func TestLetStatements(t *testing.T) {
 
 		if !testLetStatement(t, statement, tt.expectedIdentifier) {
 			return
+		}
+	}
+}
+
+func TestReturnStatements(t *testing.T) {
+	input := `
+		return 5;
+		return 10;
+		return 993322;
+	`
+
+	l := lexer.New(input)
+	p := New(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 3 {
+		t.Fatalf("program.Statements does not contain 3 statements. got=%d instead", len(program.Statements))
+	}
+
+	for _, stmt := range program.Statements {
+		returnStmt, ok := stmt.(*ast.ReturnStatement)
+
+		if !ok {
+			t.Errorf("statement not *ast.ReturnStatement. got=%T instead", stmt)
+			continue
+		}
+
+		if returnStmt.TokenLiteral() != "return" {
+			t.Errorf("returnStmt.TokenLiteral() not 'return', got=%q", returnStmt.TokenLiteral())
 		}
 	}
 }
