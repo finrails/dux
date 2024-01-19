@@ -4,13 +4,21 @@ import (
 	"dux/src/ast"
 	"dux/src/lexer"
 	"dux/src/token"
+	"fmt"
 )
 
+/*
+	A Parser struct has a l *Lexer, currentToken token.Token and peekToken token.Token
+	fields. Parser encapsulates l *lexer.Lexer and it implements the interpreter parsing
+	stage
+*/
 type Parser struct {
 	l *lexer.Lexer
 
 	currentToken token.Token
 	peekToken token.Token
+
+	errors []string
 }
 
 func (p *Parser) nextToken() {
@@ -19,12 +27,19 @@ func (p *Parser) nextToken() {
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l}
+	p := &Parser{
+		l: l,
+		errors: []string{},
+	}
 
 	p.nextToken()
 	p.nextToken() // Shift ahead two times, to read and set the tokens.
 
 	return p
+}
+
+func (p *Parser) Errors() []string {
+	return p.errors
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
@@ -47,23 +62,40 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	return stmt
 }
 
+/*
+	Returns true case *Parser.currentToken.Type is equal t TokenType, if it does
+	not then it will returns false.
+*/
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
 	return p.currentToken.Type == t
 }
 
+/*
+	Returns true case *Parser.peekToken.Type is equal t TokenType, if it does not
+	it returns false.
+*/
 func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
+/*
+	Returns true case *Parser.peekToken TokenType is t TokenType. It moves foward 
+	the Lexer head if the condition is true; returns false and does nothing if it
+	does not.
+*/
 func (p *Parser) expectPeek(t token.TokenType) bool {
-	// expectPeek always shift the head foward if condition is true
-
 	if p.peekTokenIs(t) {
 		p.nextToken()
 		return true
 	}
 
+	p.peekError(t)
 	return false
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	message := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, message)
 }
 
 func (p *Parser) parseStatement() ast.Statement {

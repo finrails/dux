@@ -17,6 +17,7 @@ func TestLetStatements(t *testing.T) {
 	p := New(l)
 
 	program := p.ParseProgram()
+	checkParserErrors(t, p)
 
 	if program == nil {
 		t.Fatalf("ParseProgram() returned nil")
@@ -43,6 +44,18 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func checkParserErrors(t *testing.T, p *Parser) {
+	errors := p.Errors()
+
+	if len(errors) == 0 { return }
+
+	t.Errorf("parser has %d errors", len(errors))
+	for _, message := range errors {
+		t.Errorf("parser error: %q", message)
+	}
+	t.FailNow()
+}
+
 func testLetStatement(t *testing.T, statement ast.Statement, name string) bool {
 	if statement.TokenLiteral() != "let" { 
 		t.Errorf("statement.TokenLiteral() not 'let'. got=%q instead", statement.TokenLiteral())
@@ -51,7 +64,7 @@ func testLetStatement(t *testing.T, statement ast.Statement, name string) bool {
 
 	letStmt, ok := statement.(*ast.LetStatement)
 
-	// case not a LetStatement
+	// case statement not a LetStatement
 	if !ok {
 		t.Errorf("statement is not *ast.LetStatement. got=%T instead", statement)
 		return false
@@ -63,7 +76,7 @@ func testLetStatement(t *testing.T, statement ast.Statement, name string) bool {
 	}
 
 	if letStmt.Name.TokenLiteral() != name {
-		t.Errorf("letStmt.Name not '%s'. got=%s", name, letStmt.Name)
+		t.Errorf("letStmt.Name#TokenLiteral not '%s'. got=%s", name, letStmt.Name)
 		return false
 	}
 
