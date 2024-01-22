@@ -5,6 +5,7 @@ import (
 	"dux/src/lexer"
 	"dux/src/token"
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -57,6 +58,22 @@ func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
 }
 
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.currentToken}
+
+	parsedLiteral, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
+
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", p.currentToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	lit.Value = parsedLiteral
+
+	return lit
+}
+
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l: l,
@@ -65,6 +82,7 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	p.nextToken()
 	p.nextToken() // Shift ahead two times, to read and set the tokens.
