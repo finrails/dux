@@ -3,6 +3,7 @@ package parser
 import (
 	"dux/src/ast"
 	"dux/src/lexer"
+	"fmt"
 	"testing"
 )
 
@@ -141,6 +142,45 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestParsingPrefixExpressions(t *testing.T) {
+	prefixTests := []struct{
+		input        string
+		operator     string
+		integerValue int64
+	}{
+		{"!5;", "!", 5},
+		{"-15", "-", 15},
+	}
+
+	for _, tc := range prefixTests {
+		l := lexer.New(tc.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contains %d statements. got=%d instead", 1, len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T instead", program.Statements[0])
+		}
+
+		expression, ok := stmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("stmt is not ast.PrefixExpression. got=%T instead", stmt.Expression)
+		}
+
+		if expression.Operator != tc.operator {
+			t.Fatalf("expression.Operator is not '%s'. got='%s'", tc.operator, expression.Operator)
+		}
+
+		if !testIntegerLiteral(t, expression.Right, tc.integerValue) { return }
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 
@@ -174,6 +214,26 @@ func testLetStatement(t *testing.T, statement ast.Statement, name string) bool {
 
 	if letStmt.Name.TokenLiteral() != name {
 		t.Errorf("letStmt.Name#TokenLiteral not '%s'. got=%s", name, letStmt.Name)
+		return false
+	}
+
+	return true
+}
+
+func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
+	ilok, ok := il.(*ast.IntegerLiteral)
+	if !ok {
+		t.Errorf("il not *ast.IntegerLiteral. got=%T instead", il)
+		return false
+	}
+
+	if ilok.Value != value {
+		t.Errorf("ilok.Value not %d. got=%d instead", value, ilok.Value)
+		return false
+	}
+
+	if ilok.TokenLiteral() != fmt.Sprintf("%d", value) {
+		t.Errorf("ilok.TokenLiteral not %d. got=%s", value, il.TokenLiteral())
 		return false
 	}
 

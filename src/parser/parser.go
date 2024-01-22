@@ -11,24 +11,24 @@ import (
 const (
 	_ int = iota
 	LOWEST
-	EQUALS // ==
+	EQUALS      // ==
 	LESSGREATER // > or <
-	SUM // +
-	PRODUCT // *
-	PREFIX // -expression or !expression
-	CALL // funcCall(x)
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -expression or !expression
+	CALL        // funcCall(x)
 )
 
 /*
-	A Parser struct has a l *Lexer, currentToken token.Token and peekToken token.Token
-	fields. Parser encapsulates l *lexer.Lexer and it implements the interpreter parsing
-	stage
+A Parser struct has a l *Lexer, currentToken token.Token and peekToken token.Token
+fields. Parser encapsulates l *lexer.Lexer and it implements the interpreter parsing
+stage
 */
 type Parser struct {
 	l *lexer.Lexer
 
 	currentToken token.Token
-	peekToken		 token.Token
+	peekToken    token.Token
 
 	errors []string
 
@@ -38,7 +38,7 @@ type Parser struct {
 
 type (
 	prefixParseFn func() ast.Expression
-	infixParseFn func(ast.Expression) ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
 )
 
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
@@ -47,6 +47,11 @@ func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
+}
+
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	msg := fmt.Sprintf("no prefix parse function for %s Token Type found", t)
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) nextToken() {
@@ -74,15 +79,27 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	pex := &ast.PrefixExpression{Token: p.currentToken, Operator: p.currentToken.Literal}
+
+	p.nextToken()
+
+	pex.Right = p.parseExpression(PREFIX)
+
+	return pex
+}
+
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		l: l,
+		l:      l,
 		errors: []string{},
 	}
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.EXCLAMATION, p.parsePrefixExpression)
+	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 
 	p.nextToken()
 	p.nextToken() // Shift ahead two times, to read and set the tokens.
@@ -129,7 +146,10 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefixFn := p.prefixParseFns[p.currentToken.Type]
 
-	if prefixFn == nil { return nil }
+	if prefixFn == nil {
+		p.noPrefixParseFnError(p.currentToken.Type)
+		return nil
+	}
 
 	leftExpression := prefixFn()
 
@@ -149,25 +169,25 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 }
 
 /*
-	Returns true case *Parser.currentToken.Type is equal t TokenType, if it does
-	not then it will returns false.
+Returns true case *Parser.currentToken.Type is equal t TokenType, if it does
+not then it will returns false.
 */
 func (p *Parser) currentTokenIs(t token.TokenType) bool {
 	return p.currentToken.Type == t
 }
 
 /*
-	Returns true case *Parser.peekToken.Type is equal t TokenType, if it does not
-	it returns false.
+Returns true case *Parser.peekToken.Type is equal t TokenType, if it does not
+it returns false.
 */
 func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
 /*
-	Returns true case *Parser.peekToken TokenType is t TokenType. It moves foward 
-	the Lexer head if the condition is true; returns false and does nothing if it
-	does not.
+Returns true case *Parser.peekToken TokenType is t TokenType. It moves foward
+the Lexer head if the condition is true; returns false and does nothing if it
+does not.
 */
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
@@ -202,7 +222,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 	for p.currentToken.Type != token.EOF {
 		stmt := p.parseStatement()
-		
+
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
 		}
