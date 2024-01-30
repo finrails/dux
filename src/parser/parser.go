@@ -19,6 +19,19 @@ const (
 	CALL        // funcCall(x)
 )
 
+var precedences = map[token.TokenType]int {
+	token.SEMICOLON: LOWEST,
+	token.EQUAL: EQUALS,
+	token.NEQUAL: EQUALS,
+	token.GTHAN: LESSGREATER,
+	token.STHAN: LESSGREATER,
+	token.PLUS: SUM,
+	token.MINUS: SUM,
+	token.EXCLAMATION: PREFIX,
+	token.STAR: PRODUCT,
+	token.RBAR: PRODUCT,
+}
+
 /*
 A Parser struct has a l *Lexer, currentToken token.Token and peekToken token.Token
 fields. Parser encapsulates l *lexer.Lexer and it implements the interpreter parsing
@@ -89,6 +102,37 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	return pex
 }
 
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	expression := &ast.InfixExpression{
+		Token: p.currentToken,
+		Operator: p.currentToken.Literal,
+		Left: left,
+	}
+
+	precedence := p.currentPrecedence()
+
+	p.nextToken()
+	expression.Right = p.parseExpression(precedence)
+
+	return expression
+}
+
+func (p *Parser) peekPrecedence() int {
+	if precedence, ok := precedences[p.peekToken.Type]; ok {
+		return precedence
+	}
+
+	return LOWEST
+}
+
+func (p *Parser) currentPrecedence() int {
+	if precedence, ok := precedences[p.currentToken.Type]; ok {
+		return precedence
+	}
+	
+	return LOWEST
+}
+
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l:      l,
@@ -100,6 +144,16 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.EXCLAMATION, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
+
+	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+	p.registerInfix(token.PLUS, p.parseInfixExpression)
+	p.registerInfix(token.MINUS, p.parseInfixExpression)
+	p.registerInfix(token.STAR, p.parseInfixExpression)
+	p.registerInfix(token.RBAR, p.parseInfixExpression)
+	p.registerInfix(token.EQUAL, p.parseInfixExpression)
+	p.registerInfix(token.NEQUAL, p.parseInfixExpression)
+	p.registerInfix(token.GTHAN, p.parseInfixExpression)
+	p.registerInfix(token.STHAN, p.parseInfixExpression)
 
 	p.nextToken()
 	p.nextToken() // Shift ahead two times, to read and set the tokens.
@@ -151,9 +205,21 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 		return nil
 	}
 
-	leftExpression := prefixFn()
+	expression := prefixFn()
 
-	return leftExpression
+	for p.peekPrecedence() > precedence {
+		infixFn := p.infixParseFns[p.peekToken.Type]
+
+		if infixFn == nil {
+			return expression
+		}
+
+		p.nextToken()
+
+		expression = infixFn(expression)
+	}
+
+	return expression
 }
 
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
