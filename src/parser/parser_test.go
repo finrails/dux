@@ -260,6 +260,12 @@ func TestLiteralInfixExpressions(t *testing.T) {
 			operator: "-",
 			right: 16,
 		},
+		{
+			input: "foo + bar",
+			left: "foo",
+			operator: "+",
+			right: "bar",
+		},
 	}
 
 	for _, tc := range tests {
