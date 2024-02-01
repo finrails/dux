@@ -451,7 +451,7 @@ func TestIfElseExpression(t *testing.T) {
 		t.Fatalf("program.Expression not *ast.IfExpression. got=%T", stmt.Expression)
 	}
 
-	if !testInfixExpression(t, ifok.Condition, "x", ">", "y") { return }
+	if !testInfixExpression(t, ifok.Condition, "x", "<", "y") { return }
 
 	if len(ifok.Consequence.Statements) != 1 {
 		t.Fatalf("Consequence.Statements length shoul be %d. got=%d", 1, len(ifok.Consequence.Statements))
