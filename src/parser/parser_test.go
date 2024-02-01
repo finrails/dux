@@ -504,7 +504,7 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	}
 
 	testLiteralExpression(t, fl.Parameters[0], "x")
-	testLiteralExpression(t, fl.Parameters[0], "y")
+	testLiteralExpression(t, fl.Parameters[1], "y")
 
 	if len(fl.Body.Statements) != 1 {
 		t.Fatalf("function literal Body.Statements should be %d. got=%d", 1, len(fl.Body.Statements))
