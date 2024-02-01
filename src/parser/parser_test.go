@@ -560,6 +560,98 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 }
 
+func TestCallExpressionParsing(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	
+	checkParserErrors(t, p)
+
+	if len(program.Statements) > 1 {
+		t.Fatalf("program.Statements length should be %d. got=%d", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] not *ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	cex, ok := stmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression not *ast.CallExpression. got=%T", stmt.Expression)
+	}
+
+	if !testIdentifier(t, cex.Function, "add") { return }
+
+	if len(cex.Arguments) != 3 {
+		t.Fatalf("wrong lenth of arguments. want=%d, got=%d", 3, len(cex.Arguments))
+	}
+
+	testLiteralExpression(t, cex.Arguments[0], 1)
+	testInfixExpression(t, cex.Arguments[1], 2, "*", 3)
+	testInfixExpression(t, cex.Arguments[2], 4, "+", 5)
+}
+
+func TestCallExpressionArgumentParsing(t *testing.T) {
+	tests := []struct{
+		input string
+		expectedIdent string
+		expectedArgs []string
+	}{
+		{
+			input: "add();",
+			expectedIdent: "add",
+			expectedArgs: []string{},
+		},
+		{
+			input: "add(1);",
+			expectedIdent: "add",
+			expectedArgs: []string{"1"},
+		},
+		{
+			input: "add(1, 2 * 3, 4 + 5);",
+			expectedIdent: "add",
+			expectedArgs: []string{"1", "(2 * 3)", "(4 + 5)"},
+		},
+	}
+
+	for _, tc := range tests {
+		l := lexer.New(tc.input)
+		p := New(l)
+		program := p.ParseProgram()
+
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements length should be %d. got=%d", 1, len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] not *ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		cex, ok := stmt.Expression.(*ast.CallExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression not *ast.CallExpresion. got=%T", stmt.Expression)
+		}
+
+		if !testIdentifier(t, cex.Function, tc.expectedIdent) { return }
+
+		if len(cex.Arguments) != len(tc.expectedArgs) {
+			t.Fatalf("cex.Arguments length should be %d. got=%d", len(tc.expectedArgs), len(cex.Arguments))
+		}
+
+		for i, arg := range tc.expectedArgs {
+			if cex.Arguments[i].String() != arg {
+				t.Errorf("argument wrong. want=%q, got=%q", arg, cex.Arguments[i].String())
+			}
+		}
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 
