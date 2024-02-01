@@ -46,7 +46,7 @@ type Identifier struct {
 
 type Boolean struct {
 	Token token.Token
-	value bool
+	Value bool
 }
 
 type InfixExpression struct {
