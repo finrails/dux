@@ -44,6 +44,11 @@ type Identifier struct {
 	Value string
 }
 
+type Boolean struct {
+	Token token.Token
+	value bool
+}
+
 type InfixExpression struct {
 	Token    token.Token // Operator Token (i.e. +, -, >, <...)
 	Left     Expression
@@ -77,6 +82,10 @@ type ExpressionStatement struct {
 	Token token.Token
 	Expression Expression
 }
+
+func (b *Boolean) expressionNode() {}
+func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
+func (b *Boolean) String() string { return b.Token.Literal }
 
 func (ie *InfixExpression) expressionNode() {}
 func (ie *InfixExpression) TokenLiteral() string { return ie.Token.Literal }
