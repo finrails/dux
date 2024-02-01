@@ -384,6 +384,98 @@ func TestBooleanExpressions(t *testing.T) {
 	}
 }
 
+func TestIfExpressions(t *testing.T) {
+	input := `if (x < y) { x }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements should have %d statements. got=%d", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	ifok, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	if !testInfixExpression(t, ifok.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(ifok.Consequence.Statements) != 1 {
+		t.Errorf("Consequence.Statements should be %d. got=%d", 1, len(ifok.Consequence.Statements))
+	}
+
+	consequence, ok := ifok.Consequence.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("Consequence.Statements[0] not *ast.ExpressionStatement. got=%T", ifok.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") { return }
+
+	if ifok.Alternative != nil {
+		t.Errorf("IfExpression.Alternative not nil. got=%T", ifok.Alternative)
+	}
+}
+
+func TestIfElseExpression(t *testing.T) {
+	input := `if (x < y) { x } else { y }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements should be %d. got=%d", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] not *ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	ifok, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("program.Expression not *ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	if !testInfixExpression(t, ifok.Condition, "x", ">", "y") { return }
+
+	if len(ifok.Consequence.Statements) != 1 {
+		t.Fatalf("Consequence.Statements length shoul be %d. got=%d", 1, len(ifok.Consequence.Statements))
+	}
+
+	consequence, ok := ifok.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("Consequence.Statements[0] not *ast.ExpressionStatement. got=%T", ifok.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") { return }
+
+	if len(ifok.Alternative.Statements) != 1 {
+		t.Fatalf("Alternative.Statements[0] should be %d. got=%d", 1, ifok.Alternative.Statements)
+	}
+
+	alternative, ok := ifok.Alternative.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("Alternative.Statements[0] not *ast.ExpressionStatement. got=%T", ifok.Alternative.Statements[0])
+	}
+
+	if !testIdentifier(t, alternative.Expression, "y") { return }
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 
