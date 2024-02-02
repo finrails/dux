@@ -2,10 +2,10 @@ package repl
 
 import (
 	"bufio"
+	"dux/src/lexer"
+	"dux/src/parser"
 	"fmt"
 	"io"
-	"dux/src/lexer"
-	"dux/src/token"
 )
 
 const ARROW = ">> "
@@ -20,10 +20,22 @@ func Start(in io.Reader, out io.Writer) {
 		if !scanned { return }
 
 		line := scanner.Text()
-		lex := lexer.New(line)
+		l := lexer.New(line)
+		p := parser.New(l)
+		program := p.ParseProgram()
 
-		for tok := lex.NextToken(); tok.Type != token.EOF; tok = lex.NextToken() {
-			fmt.Printf("%+v\n", tok)
+		if len(p.Errors()) != 0 {
+			printParserErrors(out, p.Errors())
+			continue
 		}
+
+		io.WriteString(out, program.String())
+		io.WriteString(out, "\n")
+	}
+}
+
+func printParserErrors(out io.Writer, errors []string) {
+	for _, msg := range errors {
+		io.WriteString(out, "\t"+msg+"\n")
 	}
 }
