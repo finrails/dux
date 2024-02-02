@@ -5,10 +5,11 @@ import (
 	"dux/src/object"
 )
 
+
 var (
-	NIL   = &object.Nil{}
-	TRUE  = &object.Boolean{Value: true}
-	FALSE = &object.Boolean{Value: false}
+	NIL    = &object.Nil{}
+	TRUE   = &object.Boolean{Value: true}
+	FALSE  = &object.Boolean{Value: false}
 )
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
@@ -19,7 +20,7 @@ func Eval(node ast.Node) object.Object {
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 	case *ast.Boolean:
-		if node.Value { return TRUE } else { return FALSE }
+		return nativeBoolToBooleanObject(node.Value)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
 		return evalPrefixExpression(node.Operator, right)
@@ -97,7 +98,19 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	case "/":
 		if rightVal == 0 { return NIL }
 		return &object.Integer{Value: leftVal / rightVal}
+	case ">":
+		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case "<":
+		return nativeBoolToBooleanObject(leftVal < rightVal)
+	case "==":
+		return nativeBoolToBooleanObject(leftVal == rightVal)
+	case "!=":
+		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return NIL
 	}
+}
+
+func nativeBoolToBooleanObject(bol bool) *object.Boolean {
+	if bol { return TRUE } else { return FALSE }
 }
