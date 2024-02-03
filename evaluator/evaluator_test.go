@@ -1,9 +1,9 @@
 package evaluator
 
 import (
-	"dux/src/lexer"
-	"dux/src/object"
-	"dux/src/parser"
+	"dux/lexer"
+	"dux/object"
+	"dux/parser"
 	"testing"
 )
 

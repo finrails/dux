@@ -1,8 +1,8 @@
 package evaluator
 
 import (
-	"dux/src/ast"
-	"dux/src/object"
+	"dux/ast"
+	"dux/object"
 )
 
 

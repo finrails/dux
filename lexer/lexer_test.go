@@ -2,7 +2,7 @@ package lexer
 
 import (
 	"testing"
-	"dux/src/token"
+	"dux/token"
 )
 
 func TestNextToken(t *testing.T) {

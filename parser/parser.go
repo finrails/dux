@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"dux/src/ast"
-	"dux/src/lexer"
-	"dux/src/token"
+	"dux/ast"
+	"dux/lexer"
+	"dux/token"
 	"fmt"
 	"strconv"
 )

@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"dux/src/token"
+	"dux/token"
 	"testing"
 )
 

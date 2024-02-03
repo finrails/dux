@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/user"
 	"os"
-	"dux/src/repl"
+	"dux/repl"
 )
 
 func main() {

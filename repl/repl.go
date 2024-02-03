@@ -2,9 +2,9 @@ package repl
 
 import (
 	"bufio"
-	"dux/src/evaluator"
-	"dux/src/lexer"
-	"dux/src/parser"
+	"dux/evaluator"
+	"dux/lexer"
+	"dux/parser"
 	"fmt"
 	"io"
 )

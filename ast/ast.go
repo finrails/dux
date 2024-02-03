@@ -2,7 +2,7 @@ package ast
 
 import (
 	"bytes"
-	"dux/src/token"
+	"dux/token"
 	"strings"
 )
 

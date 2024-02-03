@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"dux/src/ast"
-	"dux/src/lexer"
+	"dux/ast"
+	"dux/lexer"
 	"fmt"
 	"testing"
 )
