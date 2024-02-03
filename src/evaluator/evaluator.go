@@ -10,6 +10,7 @@ var (
 	NIL    = &object.Nil{}
 	TRUE   = &object.Boolean{Value: true}
 	FALSE  = &object.Boolean{Value: false}
+	ZERO   = &object.Integer{Value: 0}
 )
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
@@ -18,6 +19,7 @@ func Eval(node ast.Node) object.Object {
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
 	case *ast.IntegerLiteral:
+		if node.Value == 0 { return ZERO }
 		return &object.Integer{Value: node.Value}
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(node.Value)
@@ -28,6 +30,10 @@ func Eval(node ast.Node) object.Object {
 		left := Eval(node.Left)
 		right := Eval(node.Right)
 		return evalInfixExpression(node.Operator, left, right)
+	case *ast.BlockStatement:
+		return evalStatements(node.Statements)
+	case *ast.IfExpression:
+		return evalIfExpression(node)
 	}
 
 	return nil
@@ -116,6 +122,33 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
 		return NIL
+	}
+}
+
+func evalIfExpression(ie *ast.IfExpression) object.Object {
+	condition := Eval(ie.Condition)
+
+	if truthy(condition) {
+		return Eval(ie.Consequence)
+	} else if ie.Alternative != nil {
+		return Eval(ie.Alternative)
+	} else {
+		return NIL
+	}
+}
+
+func truthy(obj object.Object) bool {
+	switch obj {
+	case NIL:
+		return false
+	case TRUE:
+		return true
+	case FALSE:
+		return false
+	case ZERO:
+		return false
+	default:
+		return true
 	}
 }
 
