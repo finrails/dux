@@ -182,6 +182,26 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObject(t *testing.T) {
+	input := "fn(x) { x + 2; };"
+
+	evaluated := testEval(input)
+	fn, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Fatalf("object should be *object.Function. got=%T", evaluated)
+	}
+
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("function has wrong parameters. Parameters=%+v", fn.Parameters)
+	}
+
+	expectedBody := "(x + 2)"
+
+	if fn.Body.String() != expectedBody {
+		t.Fatalf("body is not %q. got=%q", expectedBody, fn.Body.String())
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
@@ -189,6 +209,34 @@ func testEval(input string) object.Object {
 	env := object.NewEnvironment()
 
 	return Eval(program, env)
+}
+
+func TestFunctionApplication(t *testing.T) {
+	tests := []struct{
+		input    string
+		expected int64
+	}{
+		{"let identify = fn(x) { x; }; identify(5);", 5},
+		{"let identify = fn(x) { return x; }; identify(5);", 5},
+		{"let double  = fn(x) { x * 2; }; double(5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+		{"fn(x) { x;}(5)", 5},
+	}
+
+	for _, tc := range tests {
+		testIntegerObject(t, testEval(tc.input), tc.expected)
+	}
+}
+
+func TestClosures(t *testing.T) {
+	input := `
+		let newAdder = fn(x) { fn(y) { x + y }; };"
+		let addTwo = newAdder(2);
+		addTwo(2);
+	`
+
+	testIntegerObject(t, testEval(input), 4)
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
