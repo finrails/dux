@@ -28,3 +28,5 @@ func TestString(t *testing.T) {
 		t.Errorf(`program.String() wrong, should return %q. got=%q`, expected, program.String())
 	}
 }
+
+func TestStringLiteralExpression(t *testing.T)

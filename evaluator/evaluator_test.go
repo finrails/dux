@@ -149,6 +149,7 @@ func TestErrorHandling(t *testing.T) {
 		{"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
 		{"if (10 > 1) { if (10 > 1) { return true + false } return 1 }", "unknown operator: BOOLEAN + BOOLEAN"},
 		{"foobar", "identifier not found: foobar"},
+		{`"foo" - "bar"`, "unknown operator: STRING - STRING"},
 	}
 
 	for _, tc := range tests {
@@ -202,6 +203,48 @@ func TestFunctionObject(t *testing.T) {
 	}
 }
 
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello, World!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T", evaluated)
+	}
+
+	if str.Value != "Hello, World!" {
+		t.Errorf("String has wrong value. want=%q, got=%q", "Hello, World!", str.Value)
+	}
+}
+
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + " " + "World!"`
+	evaluated := testEval(input)
+
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object not *object.String. got=%T", evaluated)
+	}
+
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. want=%q, got=%q", "Hello, World!", str.Value)
+	}
+}
+
+func TestStringMultiplication(t *testing.T) {
+	input := `"foo" * 5`
+	evaluated := testEval(input)
+
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object not a String. got=%T", evaluated)
+	}
+
+	if str.Value != "foofoofoofoofoo" {
+		t.Errorf("String has wrong value. expected=%q, got=%q", "foofoofoofoofoo", str.Value)
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
@@ -221,7 +264,7 @@ func TestFunctionApplication(t *testing.T) {
 		{"let double  = fn(x) { x * 2; }; double(5);", 10},
 		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
 		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-		{"fn(x) { x;}(5)", 5},
+		{"fn(x) { x; }(5)", 5},
 	}
 
 	for _, tc := range tests {
@@ -231,7 +274,7 @@ func TestFunctionApplication(t *testing.T) {
 
 func TestClosures(t *testing.T) {
 	input := `
-		let newAdder = fn(x) { fn(y) { x + y }; };"
+		let newAdder = fn(x) { fn(y) { x + y }; };
 		let addTwo = newAdder(2);
 		addTwo(2);
 	`

@@ -41,6 +41,9 @@ const (
 	RETURN = "RETURN"
 	TRUE = "TRUE"
 	FALSE = "FALSE"
+
+	// Records
+	STRING = "STRING"
 )
 
 type Token struct {

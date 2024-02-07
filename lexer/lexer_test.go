@@ -26,6 +26,9 @@ func TestNextToken(t *testing.T) {
 
 		217 == 217;
 		78 != 2;
+
+		"foobar"
+		"foo bar"
 	`
 
 	tests := []struct {
@@ -105,6 +108,9 @@ func TestNextToken(t *testing.T) {
 		{token.NEQUAL, "!="},
 		{token.INT, "2"},
 		{token.SEMICOLON, ";"},
+		{token.STRING, "foobar"},
+		{token.STRING, "foo bar"},
+		{token.EOF, ""},
 	}
 
 	lex := New(input)
@@ -113,7 +119,7 @@ func TestNextToken(t *testing.T) {
 		tok := lex.NextToken()
 
 		if tok.Type != test.expectedType {
-			t.Fatalf("tests[%d] - wrong token type. literal: %q, expected=%q, got=%q", index, tok.Literal, test.expectedType, tok.Type)
+			t.Fatalf("tests[%d] - wrong token type. expected=%q, got=%q", index, test.expectedType, tok.Type)
 		}
 	}
 }
