@@ -11,27 +11,29 @@ const (
 	INT = "INT" // ...-2, -1, 0, 1, 2...
 
 	// Operators
-	ASSIGN = "="
-	PLUS = "+"
-	MINUS = "-"
-	RBAR = "/"
-	STAR = "*"
+	ASSIGN      = "="
+	PLUS        = "+"
+	MINUS       = "-"
+	RBAR        = "/"
+	STAR        = "*"
 	EXCLAMATION = "!"
-	STHAN = "<"
-	GTHAN = ">"
+	STHAN       = "<"
+	GTHAN       = ">"
 
 	// Double Operators
-	EQUAL = "=="
+	EQUAL  = "=="
 	NEQUAL = "!="
 
 	// Delimiters
-	COMMA = ","
+	COMMA     = ","
 	SEMICOLON = ";"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	LPAREN   = "("
+	RPAREN   = ")"
+	LBRACE   = "{"
+	RBRACE   = "}"
+	LBRACKET = "["
+	RBRACKET = "]"
 
 	// Keywords
 	FUNCTION = "FUNCTION"

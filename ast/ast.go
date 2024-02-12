@@ -40,6 +40,12 @@ type Program struct {
 	Statements []Statement
 }
 
+type IndexExpresssion struct {
+	Token token.Token
+	Left  Expression
+	Index Expression
+}
+
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -111,6 +117,43 @@ type CallExpression struct {
 type StringLiteral struct {
 	Token token.Token
 	Value string
+}
+
+type ArrayLiteral struct {
+	Token    token.Token
+	Elements []Expression
+}
+
+func (ie *IndexExpresssion) expressionNode() {}
+func (ie *IndexExpresssion) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IndexExpresssion) String() string {
+	var out strings.Builder
+
+	out.WriteString("(")
+	out.WriteString(ie.Left.String())
+	out.WriteString("[")
+	out.WriteString(ie.Index.String())
+	out.WriteString("])")
+
+	return out.String()
+}
+
+func (al *ArrayLiteral) expressionNode() {}
+func (al *ArrayLiteral) TokenLiteral() string { return al.Token.Literal }
+func (al *ArrayLiteral) String() string {
+	var out strings.Builder
+	chunks := []string{}
+
+	out.WriteString("[")
+
+	for _, exp := range al.Elements {
+		chunks = append(chunks, exp.String())
+	}
+
+	out.WriteString(strings.Join(chunks, ", "))
+	out.WriteString("]")
+
+	return out.String()
 }
 
 func (sl *StringLiteral) expressionNode() {}

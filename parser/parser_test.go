@@ -7,6 +7,93 @@ import (
 	"testing"
 )
 
+func TestParsingIndexExpressions(t *testing.T) {
+	input := "myArray[1 + 1]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatal("exp not *ast.ExpressionStatement")
+	}
+
+	ie, ok := stmt.Expression.(*ast.IndexExpresssion)
+	if !ok {
+		t.Fatalf("stmt.exp not *ast.IndexExpression. got=%T", stmt.Expression)
+	}
+
+	if !testIdentifier(t, ie.Left, "myArray") { return }
+
+	if !testInfixExpression(t, ie.Index, 1, "+", 1) { return }
+}
+
+func TestParsingArrayLiterals(t *testing.T) {
+	tests := []struct{
+		input            string
+		expectedLen      int
+		expectedElements []interface{}
+		left             interface{}
+		right            interface{}
+		op               string
+	}{
+		{input: "[1, 2, 3]", expectedLen: 3, expectedElements: []interface{}{1, 2, 3}},
+		{input: `["foo", 1, 2, "bar"]`, expectedLen: 4, expectedElements: []interface{}{"foo", 1, 2, "bar"}},
+		{input: "[1, 2]", expectedLen: 2, expectedElements: []interface{}{1, 2}},
+		{input: "[]", expectedLen: 0, expectedElements: []interface{}{}},
+		{input: "[1, 2, 6 + 2]", expectedLen: 3, expectedElements: []interface{}{1, 2, 8}, left: 6, right: 2, op: "+"},
+		{input: `[3 * 3, "foobar"]`, expectedLen: 2, expectedElements: []interface{}{9, "foobar"}, left: 3, right: 3, op: "*"},
+	}
+
+	for _, tc := range tests {
+		l := lexer.New(tc.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if len(program.Statements) != 1 {
+			t.Fatalf("program has wrong number of statements. got=%d, want=%d", len(program.Statements), 1)
+		}
+
+		if !ok {
+			t.Fatalf("exp not *ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		array, ok := stmt.Expression.(*ast.ArrayLiteral)
+		if !ok {
+			t.Fatalf("stmt.Expression is not an *ast.ArrayLiteral. got=%T", stmt.Expression)
+		}
+
+		if len(array.Elements) != tc.expectedLen {
+			t.Fatalf("array has wrong number of elements. want=%d, got=%d", tc.expectedLen, len(array.Elements))
+		}
+
+		testArrayElements(t, array.Elements, tc.expectedElements, tc.left, tc.right, tc.op)
+	}
+}
+
+func testArrayElements(t *testing.T, elems []ast.Expression, expectedElements []interface{}, left, right interface{}, op string) {
+	var caseNum int
+	for index, exp := range elems {
+		caseNum++
+
+		switch exp.(type) {
+		case *ast.InfixExpression:
+			if !testInfixExpression(t, exp, left, op, right) {
+				t.Errorf("test case (%d): array[%d] infix exp has wrong element. want=%T", caseNum, index, expectedElements[index])
+			}
+		default:
+			if !testLiteralExpression(t, exp, expectedElements[index]) {
+				t.Errorf("test case (%d): array[%d] was wrong element. got=%T, want=%T", caseNum, index, exp.String(), expectedElements[index])
+			}
+		}
+	}
+
+}
+
 func TestStringLiteralExpression(t *testing.T) {
 	input := `"hello, world";`
 
@@ -343,6 +430,7 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{"add(2, add(5, 5))", "add(2, add(5, 5))"},
 		{"a + add(b * c) + d", "((a + add((b * c))) + d)"},
 		{"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))", "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"},
+		{"a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)"},
 	}
 
 	for _, tc := range tests {
@@ -773,6 +861,9 @@ func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{
 	case int64:
 		return testIntegerLiteral(t, exp, v)
 	case string:
+		if str, ok := exp.(*ast.StringLiteral); ok {
+			return testString(t, str, v)
+		}
 		return testIdentifier(t, exp, v)
 	case bool:
 		return testBoolean(t, exp, v)
@@ -780,6 +871,21 @@ func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{
 
 	t.Errorf("type of exp not handled. got=%T", exp)
 	return false
+}
+
+func testString(t *testing.T, exp ast.Expression, expected string) bool {
+	str, ok := exp.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("exp is not *ast.StringLiteral. got=%T", exp)
+		return false
+	}
+
+	if str.Value != expected {
+		t.Errorf("string has invalid value. got=%q, want=%q", str.Value, expected)
+		return false
+	}
+
+	return true
 }
 
 func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, operator string, right interface{}) bool {

@@ -145,6 +145,10 @@ func (lex *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	case '[':
+		tok = newToken(token.LBRACKET, lex.char)
+	case ']':
+		tok = newToken(token.RBRACKET, lex.char)
 	default:
 		if isLetter(lex.char) {
 			tok.Literal = lex.readIdentifier()
