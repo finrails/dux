@@ -7,6 +7,72 @@ import (
 	"testing"
 )
 
+func TestReduceImplementation(t *testing.T) {
+	input := `
+		let reduce = fn(arr, initial, f) {
+			let iter = fn(arr, result) {
+				if (len(arr) == 0) {
+					result
+				} else {
+					iter(tail(arr), f(result, first(arr)));
+				}
+			};
+
+			iter(arr, initial)
+		}
+
+		let sum = fn(arr) {
+			reduce(arr, 0, fn(initial, current) { initial + current });
+		}
+
+		sum([2, 4, 6])
+	`
+
+	result := testEval(input)
+
+	num, ok := result.(*object.Integer)
+	if !ok {
+		t.Fatalf("object has wrong type. should be Integer, got=%s", result.Type())
+	}
+
+	if num.Value != 12 {
+		t.Errorf("num has wrong value. should be 12, got=%d", num.Value)
+	}
+}
+
+func TestMapImplementation(t *testing.T) {
+	input := `
+		let map = fn(arr, f) {
+			let iter = fn(arr, accumulated) {
+				if (len(arr) == 0) {
+					accumulated
+				} else {
+					iter(tail(arr), push(accumulated, f(first(arr))))
+				}
+			};
+
+			iter(arr, []);
+		}
+
+		map([1, 2, 3], fn(x) { x * 2 })
+	`
+
+	result := testEval(input)
+
+	array, ok := result.(*object.Array)
+	if !ok {
+		t.Fatalf("object should be Array. got=%T", result)
+	}
+
+	if len(array.Elements) != 3 {
+		t.Fatalf("array has wrong number of elements. want=3, got=%d", len(array.Elements))
+	}
+
+	if array.Inspect() != "[2, 4, 6]" {
+		t.Errorf("array has wrong elements. got=%s, want=%s", array.Inspect(), "[2, 4, 6]")
+	}
+}
+
 func TestBuiltinFunctions(t *testing.T) {
 	tests := []struct{
 		input    string
