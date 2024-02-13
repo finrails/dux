@@ -28,10 +28,11 @@ func Start(in io.Reader, out io.Writer) {
 		program := p.ParseProgram()
 
 		evaluated := evaluator.Eval(program, env)
-		if evaluated != nil {
-			io.WriteString(out, evaluated.Inspect())
-			io.WriteString(out, "\n")
-		}
+
+		if evaluated == nil { continue }
+		
+		io.WriteString(out, evaluated.Inspect())
+		io.WriteString(out, "\n")
 	}
 }
 

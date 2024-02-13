@@ -284,6 +284,8 @@ func evalBlockStatement(bs *ast.BlockStatement, env *object.Environment) object.
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
+	if node.TokenLiteral() == "nil" { return NIL }
+
 	val, ok := env.Get(node.Value)
 
 	if builtin, ok := builtins[node.Value]; ok {

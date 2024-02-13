@@ -17,6 +17,23 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("Hello world")`, 11},
 		{`len(1)`, "argument to `len` not supported, got INTEGER"},
 		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`first([1, 2, 3])`, 1},
+		{`first(["poo", true])`, "poo"},
+		{`let slice = [6, 2]; first(slice)`, 6},
+		{`last([1, 2, 3])`, 3},
+		{`let slice = [12, 8]; last(slice)`, 8},
+		{`first("foobar")`, "f"},
+		{`last("gap")`, "p"},
+		{`tail([1, 2, 3])`, "[2, 3]"},
+		{`tail([2, 3])`, "[3]"},
+		{`tail([3])`, "[]"},
+		{`tail([])`, nil},
+		{`head([1, 2, 3])`, "[1, 2]"},
+		{`head([1, 2])`, "[1]"},
+		{`head([1])`, "[]"},
+		{`head([])`, "nil"},
+		{`push([], 5)`, "[5]"},
+		{`push([1], true)`, "[1, true]"},
 	}
 
 	for _, tc := range tests {
@@ -26,14 +43,15 @@ func TestBuiltinFunctions(t *testing.T) {
 		case int:
 			testIntegerObject(t, evaluated, int64(expected))
 		case string:
-			errObj, ok := evaluated.(*object.Error)
-			if !ok {
-				t.Errorf("object is not Error. got=%T", evaluated)
+			switch obj := evaluated.(type) {
+			case *object.String:
+				if obj.Value != expected { t.Fatalf("String has invalid char sequence. want=%q, got=%q", tc.expected, obj.Value) }
 				continue
-			}
-
-			if errObj.Message != expected {
-				t.Errorf("wrong error message. got=%q", errObj.Message)
+			case *object.Error:
+				if obj.Message != expected { t.Fatalf("wrong error message. got=%q", obj.Message) }
+				continue
+			case *object.Array:
+				if obj.Inspect() != expected { t.Fatalf("array has wrong elements. want=%s, got=%s", tc.expected, obj.Inspect()) }
 			}
 		}
 	}
