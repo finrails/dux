@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"dux/object"
+	"fmt"
 )
 
 var builtins = map[string]*object.Builtin{
@@ -111,6 +112,14 @@ var builtins = map[string]*object.Builtin{
 			default:
 				return newError("invalid first argument %s to 'head', must be ARRAY", arg.Type())
 			}
+		},
+	},
+	"puts": {
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+			return NIL
 		},
 	},
 }
