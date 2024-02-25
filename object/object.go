@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"dux/ast"
 	"fmt"
+	"hash/fnv"
 	"strings"
 )
 
@@ -19,6 +20,7 @@ const (
 	STRING_OBJ       = "STRING"
 	BUILTIN_OBJ      = "BUILTIN"
 	ARRAY_OBJ        = "ARRAY"
+	HASH_OBJ         = "HASH"
 )
 
 type Object interface {
@@ -64,11 +66,51 @@ type Array struct {
 	Elements []Object
 }
 
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+type Hash struct {
+	Pairs map[uint64]HashPair
+}
+
+type Hashable interface {
+	HashKey() uint64
+}
+
+func (h *Hash) Type() ObjectType { return HASH_OBJ }
+func (h *Hash) Inspect() string {
+	var out strings.Builder
+
+	pairs := []string{}
+
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.Inspect(), pair.Value.Inspect()))
+	}
+
+	out.WriteString("{ ")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}
+
 func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string { return fmt.Sprintf("%d", i.Value) }
+func (i *Integer) HashKey() uint64 {
+	return uint64(i.Value)
+}
 
 func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string { return fmt.Sprintf("%t", b.Value) }
+func (b *Boolean) HashKey() uint64 {
+	var value uint64
+
+	if b.Value { value = 1 } else { value = 0 }
+
+	return value
+}
 
 func (n *Nil) Type() ObjectType { return NIL_OBJ }
 func (n *Nil) Inspect() string { return "nil" }
@@ -100,6 +142,12 @@ func (f *Function) Inspect() string {
 
 func (s *String) Type() ObjectType { return STRING_OBJ }
 func (s *String) Inspect() string { return fmt.Sprintf("%q", s.Value) }
+func (s *String) HashKey() uint64 {
+	hk := fnv.New64a()
+	hk.Write([]byte(s.Value))
+
+	return hk.Sum64()
+}
 
 func (bi *Builtin) Type() ObjectType { return BUILTIN_OBJ }
 func (bi *Builtin) Inspect() string { return "builtin function" }

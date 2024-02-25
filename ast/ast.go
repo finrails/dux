@@ -124,6 +124,29 @@ type ArrayLiteral struct {
 	Elements []Expression
 }
 
+type HashLiteral struct {
+	Token token.Token
+	Pairs map[Expression]Expression
+}
+
+func (hl *HashLiteral) expressionNode() {}
+func (hl *HashLiteral) TokenLiteral() string { return hl.Token.Literal }
+func (hl *HashLiteral) String() string {
+	var out strings.Builder
+
+	pairs := []string{}
+
+	for key, value := range hl.Pairs {
+		pairs = append(pairs, key.String() + ":" + value.String())
+	}
+
+	out.WriteString("{ ")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}
+
 func (ie *IndexExpresssion) expressionNode() {}
 func (ie *IndexExpresssion) TokenLiteral() string { return ie.Token.Literal }
 func (ie *IndexExpresssion) String() string {
