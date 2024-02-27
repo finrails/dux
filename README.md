@@ -20,7 +20,8 @@ Here below, you will find a brief definition of what each Dux programming langua
 
 6. repl: an read, eval, print and loop for the dx programming language, it uses dux as it core.
 
-### Features
+### Features:
+
 - [x] computation (i.e. number operations like: +, -, * and /)
 - [x] logic operators (>, <, >=, <=, ==)
 - [x] integers, booleans, strings, arrays and hashes
@@ -40,11 +41,13 @@ Here below, you will find a brief definition of what each Dux programming langua
 - [ ] switch statement
 - [ ] variable assign
 
-### dx programming language definition
+### dx programming language definition:
 
-`
-variable definition: let variable_name = <expression>
-function definition: let function_name = fn(parameterx, parametery, ...) { <expression block> }
-function call: function_name(argumentx, argumenty, ...)
-if-else definition: if (<expression>) { <expression block> } else { <expression block> }
-`
+* variable definition: let variable_name = expression
+* function definition: let function_name = fn(parameterx, parametery, ...) { expression block }
+* function call: function_name(argumentx, argumenty, ...)
+* if-else definition: if (expression) { expression block } else { expression block }
+
+### dx code example
+
+![dx code example](https://i.imgur.com/FKJ8led.png)
