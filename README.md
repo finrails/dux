@@ -51,3 +51,7 @@ Here below, you will find a brief definition of what each Dux programming langua
 ### dx code example
 
 ![dx code example](https://i.imgur.com/FKJ8led.png)
+
+### Interpreting dx source code with Dux
+
+You'll have two ways to run dux code, either you can use builtin REPL inputting 'dux' in the shell or 'dux file.dx'.
