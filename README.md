@@ -19,3 +19,32 @@ Here below, you will find a brief definition of what each Dux programming langua
 5. evaluator: it's job is to evaluates an ast node, and transform it into an object, returning it to the main program.
 
 6. repl: an read, eval, print and loop for the dx programming language, it uses dux as it core.
+
+### Features
+- [x] computation (i.e. number operations like: +, -, * and /)
+- [x] logic operators (>, <, >=, <=, ==)
+- [x] integers, booleans, strings, arrays and hashes
+- [x] let statements
+- [x] if-else statements
+- [x] function statements
+- [x] explicit and implicit return statements
+- [x] first-class functions
+- [x] function calls
+- [x] closures
+- [x] recursion
+- [x] allow variable names to have '?'
+- [x] length, first, last, tail, head, push and puts builtin functions
+- [ ] floats
+- [ ] loop statements
+- [ ] else if statement
+- [ ] switch statement
+- [ ] variable assign
+
+### dx programming language definition
+
+`
+variable definition: let variable_name = <expression>
+function definition: let function_name = fn(parameterx, parametery, ...) { <expression block> }
+function call: function_name(argumentx, argumenty, ...)
+if-else definition: if (<expression>) { <expression block> } else { <expression block> }
+`
